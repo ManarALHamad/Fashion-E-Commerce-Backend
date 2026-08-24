@@ -20,11 +20,15 @@ def create_access_token(user):
 @permission_classes([AllowAny])
 def sign_up(request):
     username = request.data.get("username", "").strip()
+    ##added
+    email = request.data.get("email", "").strip()
     password = request.data.get("password", "")
     confirm_password = request.data.get("confirmPassword", "")
 
-    if not username or not password:
+    ##changed v
+    if not username or not password or not email:
         return Response(
+            ##change message or seperate if statement
             {"err": "Username and password are required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
