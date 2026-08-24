@@ -16,9 +16,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["_id", "username"]
+        fields = ["_id", "username", "email"]
 
-        
+
 class CategorySerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 

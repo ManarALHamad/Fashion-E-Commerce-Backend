@@ -20,19 +20,28 @@ def create_access_token(user):
 @permission_classes([AllowAny])
 def sign_up(request):
     username = request.data.get("username", "").strip()
-    ##added
     email = request.data.get("email", "").strip()
     password = request.data.get("password", "")
     confirm_password = request.data.get("confirmPassword", "")
 
-    ##changed v
-    if not username or not password or not email:
+    if not username:
         return Response(
-            ##change message or seperate if statement
-            {"err": "Username and password are required."},
+            {"err": "Username is required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    if not email:
+        return Response(
+            {"err": "Email is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not password:
+        return Response(
+            {"err": "Password is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+   
     if password != confirm_password:
         return Response(
             {"err": "Passwords do not match."},
@@ -44,8 +53,14 @@ def sign_up(request):
             {"err": "That username is already taken."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {"err": "That email is already registered."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    user = User.objects.create_user(username=username, password=password)
+    user = User.objects.create_user(username=username, password=password, email=email)
     token = create_access_token(user)
 
     return Response({"token": token}, status=status.HTTP_201_CREATED)
