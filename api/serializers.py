@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import (
@@ -10,6 +11,14 @@ from .models import (
     OrderItem,
 )
 
+class UserSerializer(serializers.ModelSerializer):
+    _id = serializers.CharField(source="pk", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ["_id", "username"]
+
+        
 class CategorySerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 
@@ -93,6 +102,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
             "quantity",
             "unit_price",
         ]
+
 class OrderSerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 
