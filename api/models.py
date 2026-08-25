@@ -4,24 +4,46 @@ from django.contrib.auth.models import User
 #category
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+
+    CATEGORY_CHOICES = [
+        ("dresses", "Dresses"),
+        ("abayas", "Abayas"),
+        ("jalabya", "Jalabya"),
+    ]
+
+    name = models.CharField(
+        max_length=100,
+        choices=CATEGORY_CHOICES
+    )
 
     def __str__(self):
-        return self.name
+        return self.get_name_display()
 
 #sub category
 
 class SubCategory(models.Model):
+
+    SUBCATEGORY_CHOICES = [
+        ("new", "New Collection"),
+        ("ramadan", "Ramadan Collection"),
+        ("eid_fitr", "Eid AlFitr Collection"),
+        ("winter", "Winter Collection"),
+        ("eid_adha", "Eid AlAdha Collection"),
+    ]
+
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         related_name="subcategories"
     )
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(
+        max_length=100,
+        choices=SUBCATEGORY_CHOICES
+    )
 
     def __str__(self):
-        return self.name
+        return self.get_name_display()
 
 #product 
 
@@ -36,7 +58,7 @@ class Product(models.Model):
 
     description = models.TextField()
 
-    is_active = models.BooleanField(default=True)
+    in_stock = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

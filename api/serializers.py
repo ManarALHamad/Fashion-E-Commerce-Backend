@@ -22,12 +22,26 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 
+    display_name = serializers.CharField(
+        source="get_name_display",
+        read_only=True
+    )
+
     class Meta:
         model = Category
-        fields = ["_id", "name"]
-
+        fields = [
+            "_id",
+            "name",
+            "display_name",
+        ]
+        
 class SubCategorySerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
+
+    display_name = serializers.CharField(
+        source="get_name_display",
+        read_only=True
+    )
 
     class Meta:
         model = SubCategory
@@ -35,6 +49,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
             "_id",
             "category",
             "name",
+            "display_name",
         ]
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -84,7 +99,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "sub_category",
-            "is_active",
+            "in_stock",
             "images",
             "variants",
             "createdAt",
