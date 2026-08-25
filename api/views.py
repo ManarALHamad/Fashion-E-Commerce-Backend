@@ -131,6 +131,7 @@ def product_list_create(request):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+    
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def product_image_create(request, product_id):
@@ -161,3 +162,20 @@ def product_image_create(request, product_id):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST
     )
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def product_detail(request, product_id):
+
+    try:
+        product = Product.objects.get(pk=product_id)
+
+    except Product.DoesNotExist:
+        return Response(
+            {"err": "Product not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = ProductSerializer(product)
+
+    return Response(serializer.data)
