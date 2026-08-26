@@ -110,6 +110,15 @@ class ProductVariant(models.Model):
 
     inventory = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "size"],
+                name="unique_product_size"
+            )
+        ]
+
+
     def __str__(self):
         return f"{self.product.name} - {self.get_size_display()}"
 
