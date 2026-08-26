@@ -10,6 +10,9 @@ from .models import ( Category, SubCategory, Product, ProductImage)
 from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer)
 from .models import ProductImage
 from .serializers import ProductImageSerializer
+from .models import ProductVariant
+from .serializers import ProductVariantSerializer
+
 
 def create_access_token(user):
     token = RefreshToken.for_user(user).access_token
@@ -210,3 +213,22 @@ def product_detail(request, product_id):
             {"message": "Product deleted successfully."},
             status=status.HTTP_200_OK
         )
+
+
+# posting each variant as its own endpoint
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def product_variant_create(request, product_id):
+    try:
+        product = Product.objects.get(pk=product_id)
+    except Product.DoesNotExist:
+        return Response({"err": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProductVariantSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(product=product)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

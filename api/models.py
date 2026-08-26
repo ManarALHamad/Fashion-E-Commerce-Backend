@@ -76,7 +76,8 @@ class ProductImage(models.Model):
     )
 
     image = models.ImageField(
-        upload_to="products/"
+        upload_to="products/",
+        max_length=255
     )
 
     def __str__(self):

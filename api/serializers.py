@@ -34,7 +34,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "name",
             "display_name",
         ]
-        
+
 class SubCategorySerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 
@@ -105,6 +105,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "createdAt",
         ]
 
+       
 class OrderItemSerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 
