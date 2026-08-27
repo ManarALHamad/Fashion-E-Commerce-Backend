@@ -10,6 +10,9 @@ from .models import ( Category, SubCategory, Product, ProductImage)
 from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer)
 from .models import ProductImage
 from .serializers import ProductImageSerializer
+from .models import ProductVariant
+from .serializers import ProductVariantSerializer
+
 
 def create_access_token(user):
     token = RefreshToken.for_user(user).access_token
@@ -163,7 +166,9 @@ def product_image_create(request, product_id):
         status=status.HTTP_400_BAD_REQUEST
     )
 
-@api_view(["GET"])
+# Change here to get, put delete
+
+@api_view(["GET", "PUT", "DELETE"])
 @permission_classes([AllowAny])
 def product_detail(request, product_id):
 
@@ -176,6 +181,54 @@ def product_detail(request, product_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    serializer = ProductSerializer(product)
+    # view
+    if request.method == "GET":
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
 
-    return Response(serializer.data)
+
+    # update
+    if request.method == "PUT":
+        serializer = ProductSerializer(
+            product,
+            data=request.data
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+    # delete
+    if request.method == "DELETE":
+        product.delete()
+
+        return Response(
+            {"message": "Product deleted successfully."},
+            status=status.HTTP_200_OK
+        )
+
+
+# posting each variant as its own endpoint
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def product_variant_create(request, product_id):
+    try:
+        product = Product.objects.get(pk=product_id)
+    except Product.DoesNotExist:
+        return Response({"err": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProductVariantSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(product=product)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
