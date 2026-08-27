@@ -12,6 +12,7 @@ urlpatterns = [
     path("products", views.product_list_create),
     path("products/<int:product_id>/images", views.product_image_create),
     path("products/<int:product_id>", views.product_detail),
+    path("products/<int:product_id>", views.product_detail),
     path("products/<int:product_id>/variants", views.product_variant_create),
     path("products/<int:product_id>/variants/<int:variant_id>", views.product_variant_detail)
 
