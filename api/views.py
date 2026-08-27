@@ -232,3 +232,33 @@ def product_variant_create(request, product_id):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["PUT"])
+@permission_classes([AllowAny])
+def product_variant_detail(request, product_id, variant_id):
+
+    try:
+        variant = ProductVariant.objects.get(
+            pk=variant_id,
+            product_id=product_id
+        )
+
+    except ProductVariant.DoesNotExist:
+        return Response(
+            {"err": "Variant not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = ProductVariantSerializer(
+        variant,
+        data=request.data
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
