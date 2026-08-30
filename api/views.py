@@ -266,6 +266,10 @@ def product_variant_detail(request, product_id, variant_id):
         status=status.HTTP_400_BAD_REQUEST
     )
 
+
+
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def order_create(request):
@@ -292,9 +296,12 @@ def order_create(request):
             order=order,
             product_id=item["product"],
             variant_id=item["variant"],
-            quantity=item["quantity"]
+            quantity=item["quantity"],
+            unit_price=item["unit_price"]
+
         )
     return Response(OrderSerializer(order).data,status=status.HTTP_201_CREATED)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
