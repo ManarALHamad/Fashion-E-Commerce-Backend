@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from .models import ( Category, SubCategory, Product, ProductImage)
 from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer)
@@ -12,6 +13,8 @@ from .models import ProductImage
 from .serializers import ProductImageSerializer
 from .models import ProductVariant
 from .serializers import ProductVariantSerializer
+from .models import Order, OrderItem, Product, ProductVariant
+from .serializers import OrderSerializer, OrderCreateSerializer
 
 
 def create_access_token(user):
@@ -112,6 +115,7 @@ def subcategory_list(request):
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def product_list_create(request):
+    print('inside list_create')
 
     if request.method == "GET":
         products = Product.objects.all().order_by("-created_at")
@@ -166,7 +170,6 @@ def product_image_create(request, product_id):
         status=status.HTTP_400_BAD_REQUEST
     )
 
-# Change here to get, put delete
 
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([AllowAny])
@@ -181,13 +184,13 @@ def product_detail(request, product_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    # view
+   
     if request.method == "GET":
         serializer = ProductSerializer(product)
         return Response(serializer.data)
 
 
-    # update
+    
     if request.method == "PUT":
         serializer = ProductSerializer(
             product,
@@ -205,7 +208,7 @@ def product_detail(request, product_id):
         )
 
 
-    # delete
+    
     if request.method == "DELETE":
         product.delete()
 
@@ -215,7 +218,6 @@ def product_detail(request, product_id):
         )
 
 
-# posting each variant as its own endpoint
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -232,6 +234,7 @@ def product_variant_create(request, product_id):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["PUT"])
 @permission_classes([AllowAny])
@@ -262,3 +265,45 @@ def product_variant_detail(request, product_id, variant_id):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST
     )
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def order_create(request):
+    serializer  = OrderCreateSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    data = serializer.validated_data
+    items_data = data.pop("items")
+
+    total_price = sum(
+        item["unit_price"] * item["quantity"] for item in items_data
+    )
+
+    order = Order.objects.create(
+        user=request.user,
+        total_price=total_price,
+        **data
+    )
+
+    for item in items_data: 
+        OrderItem.objects.create(
+            order=order,
+            product_id=item["product"],
+            variant_id=item["variant"],
+            quantity=item["quantity"]
+        )
+    return Response(OrderSerializer(order).data,status=status.HTTP_201_CREATED)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def order_list_mine(request):
+    orders = Order.objects.filter(user=request.user).order_by("-created_at")
+    return Response(OrderSerializer(orders, many=True).data)
+
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def order_list_all(request):
+    orders = Order.objects.all().order_by("-created_at")
+    return Response(OrderSerializer(orders, many=True).data)

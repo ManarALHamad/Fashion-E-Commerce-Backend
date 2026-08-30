@@ -29,6 +29,7 @@ class SubCategory(models.Model):
         ("eid_fitr", "Eid AlFitr Collection"),
         ("winter", "Winter Collection"),
         ("eid_adha", "Eid AlAdha Collection"),
+        ("sale", "Sale")
     ]
 
     category = models.ForeignKey(
@@ -127,6 +128,8 @@ class ProductVariant(models.Model):
 
 class Order(models.Model):
 
+   
+
     PAYMENT_METHOD_CHOICES = [
         ("cod", "Cash on Delivery"),
         ("online", "Online Payment"),
@@ -136,6 +139,12 @@ class Order(models.Model):
         ("pending", "Pending"),
         ("paid", "Paid"),
     ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="orders"
+    )
 
     customer_name = models.CharField(max_length=200)
     customer_email = models.EmailField()
