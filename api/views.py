@@ -310,7 +310,28 @@ def order_list_mine(request):
     return Response(OrderSerializer(orders, many=True).data)
 
 @api_view(["GET"])
-@permission_classes([IsAdminUser])
+@permission_classes([IsAuthenticated])
 def order_list_all(request):
     orders = Order.objects.all().order_by("-created_at")
     return Response(OrderSerializer(orders, many=True).data)
+
+
+#admin can delete orders 
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def order_delete(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        return Response(
+            {"error": "Order not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    order.delete()
+
+    return Response(
+        {"message": "Order deleted successfully."},
+        status=status.HTTP_200_OK
+    )
