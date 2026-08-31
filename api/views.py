@@ -22,6 +22,7 @@ def create_access_token(user):
     token["payload"] = {
         "_id": str(user.id),
         "username": user.username,
+        "email": user.email,
     }
     return str(token)
 
@@ -86,6 +87,10 @@ def sign_in(request):
             {"err": "Invalid username or password."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
+
+    print("USERNAME:", user.username)
+    print("EMAIL:", user.email)
+
 
     token = create_access_token(user)
     return Response({"token": token})
