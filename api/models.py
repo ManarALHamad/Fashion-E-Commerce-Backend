@@ -137,6 +137,12 @@ class Order(models.Model):
         ("paid", "Paid"),
     ]
 
+    ORDER_STATUS_CHOICES = [
+        ("confirmed", "Confirmed"),
+        ("in_process", "In Process"),
+        ("delivered", "Delivered")
+    ]
+
     customer_name = models.CharField(max_length=200)
     customer_email = models.EmailField()
     customer_phone = models.CharField(max_length=30)
@@ -153,7 +159,14 @@ class Order(models.Model):
         default="pending"
     )
 
-    is_confirmed = models.BooleanField(default=False)
+    # is_confirmed = models.BooleanField(default=False)
+
+    order_status = models.CharField(
+        max_length=20,
+        choices=ORDER_STATUS_CHOICES,
+        default="confirmed"
+    )
+
 
     total_price = models.DecimalField(
         max_digits=10,
