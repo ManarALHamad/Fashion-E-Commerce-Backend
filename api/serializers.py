@@ -105,7 +105,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "createdAt",
         ]
 
-       
+    
 class OrderItemSerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 
@@ -122,6 +122,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     _id = serializers.CharField(source="pk", read_only=True)
 
+    user = UserSerializer(read_only=True)
+
     items = OrderItemSerializer(
         many=True,
         read_only=True
@@ -136,6 +138,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             "_id",
+            "user",
             "customer_name",
             "customer_email",
             "customer_phone",
@@ -147,3 +150,18 @@ class OrderSerializer(serializers.ModelSerializer):
             "items",
             "createdAt",
         ]
+
+class OrderItemCreateSerializer(serializers.Serializer):
+    product = serializers.IntegerField()
+    variant = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1)
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=3)
+
+
+class OrderCreateSerializer(serializers.Serializer):
+    customer_name = serializers.CharField()
+    customer_email = serializers.EmailField()
+    customer_phone = serializers.CharField()
+    delivery_address = serializers.CharField()
+    payment_method = serializers.ChoiceField(choices=["cod", "online"])
+    items = OrderItemCreateSerializer(many=True)
