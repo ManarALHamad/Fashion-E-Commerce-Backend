@@ -6,8 +6,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import ( Category, SubCategory, Product, ProductImage)
-from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer)
+from .models import ( Category, SubCategory, Product, ProductImage, Order)
+from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer, OrderSerializer)
 from .models import ProductImage
 from .serializers import ProductImageSerializer
 from .models import ProductVariant
@@ -262,3 +262,48 @@ def product_variant_detail(request, product_id, variant_id):
         serializer.errors,
         status=status.HTTP_400_BAD_REQUEST
     )
+
+from .models import Order
+from .serializers import OrderSerializer
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def order_list(request):
+    orders = Order.objects.all().order_by("-created_at")
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET", "PUT"])
+@permission_classes([AllowAny])
+def order_detail(request, order_id):
+
+    try:
+        order = Order.objects.get(pk=order_id)
+
+    except Order.DoesNotExist:
+        return Response(
+            {"err": "Order not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if request.method == "GET":
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+
+    if request.method == "PUT":
+        serializer = OrderSerializer(
+            order,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
