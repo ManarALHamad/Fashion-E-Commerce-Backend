@@ -8,12 +8,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from .models import ( Category, SubCategory, Product, ProductImage)
-from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer)
-from .models import ProductImage
+from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer, OrderSerializer)
 from .serializers import ProductImageSerializer
-from .models import ProductVariant
 from .serializers import ProductVariantSerializer
-from .models import Order, OrderItem, Product, ProductVariant
+from .models import Order, OrderItem, ProductVariant
 from .serializers import OrderSerializer, OrderCreateSerializer
 
 
@@ -273,39 +271,98 @@ def product_variant_detail(request, product_id, variant_id):
 
 
 
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def order_list_create(request):
 
+    if request.method == "GET":
+        orders = Order.objects.all().order_by("-created_at")
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def order_create(request):
-    serializer  = OrderCreateSerializer(data=request.data)
+    if request.method == "POST":
+        if not request.user.is_authenticated:
+            return Response(
+                {"err": "Authentication required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = OrderCreateSerializer(data=request.data)
 
-    data = serializer.validated_data
-    items_data = data.pop("items")
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    total_price = sum(
-        item["unit_price"] * item["quantity"] for item in items_data
-    )
+        data = serializer.validated_data
+        items_data = data.pop("items")
 
-    order = Order.objects.create(
-        user=request.user,
-        total_price=total_price,
-        **data
-    )
-
-    for item in items_data: 
-        OrderItem.objects.create(
-            order=order,
-            product_id=item["product"],
-            variant_id=item["variant"],
-            quantity=item["quantity"],
-            unit_price=item["unit_price"]
-
+        total_price = sum(
+            item["unit_price"] * item["quantity"] for item in items_data
         )
-    return Response(OrderSerializer(order).data,status=status.HTTP_201_CREATED)
+
+        order = Order.objects.create(
+            user=request.user,
+            total_price=total_price,
+            **data
+        )
+
+        for item in items_data:
+            OrderItem.objects.create(
+                order=order,
+                product_id=item["product"],
+                variant_id=item["variant"],
+                quantity=item["quantity"],
+                unit_price=item["unit_price"],
+            )
+
+        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "PUT", "DELETE"])
+@permission_classes([AllowAny])
+def order_detail(request, order_id):
+
+    try:
+        order = Order.objects.get(pk=order_id)
+
+    except Order.DoesNotExist:
+        return Response(
+            {"err": "Order not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if request.method == "GET":
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+
+    if request.method == "PUT":
+        serializer = OrderSerializer(
+            order,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if request.method == "DELETE":
+        if not request.user.is_authenticated:
+            return Response(
+                {"err": "Authentication required."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        order.delete()
+
+        return Response(
+            {"message": "Order deleted successfully."},
+            status=status.HTTP_200_OK
+        )
 
 
 @api_view(["GET"])
@@ -314,29 +371,9 @@ def order_list_mine(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
     return Response(OrderSerializer(orders, many=True).data)
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def order_list_all(request):
     orders = Order.objects.all().order_by("-created_at")
     return Response(OrderSerializer(orders, many=True).data)
-
-
-#admin can delete orders 
-
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def order_delete(request, order_id):
-    try:
-        order = Order.objects.get(id=order_id)
-    except Order.DoesNotExist:
-        return Response(
-            {"error": "Order not found."},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    order.delete()
-
-    return Response(
-        {"message": "Order deleted successfully."},
-        status=status.HTTP_200_OK
-    )
