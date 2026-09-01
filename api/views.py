@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import ( Category, SubCategory, Product, ProductImage)
 from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer, OrderSerializer)
@@ -314,55 +316,36 @@ def order_list_create(request):
                 unit_price=item["unit_price"],
             )
 
-        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
-
-
-@api_view(["GET", "PUT", "DELETE"])
-@permission_classes([AllowAny])
-def order_detail(request, order_id):
-
+    for item in items_data: 
+        OrderItem.objects.create(
+            order=order,
+            product_id=item["product"],
+            variant_id=item["variant"],
+            quantity=item["quantity"],
+            unit_price=item["unit_price"]
+        )
+        context = {}
     try:
-        order = Order.objects.get(pk=order_id)
+        send_mail(
+        subject="Order Confirmation", 
+        message=
+        f"""
+        Dear {order.customer_name},
+        Thank you for your order!
+        Order information
+        Order number: {order.id}
+        Total amount: {order.total_price} BHD
+        Payment method: {order.get_payment_method_display()}
+        Shipping address: {order.delivery_address}
 
-    except Order.DoesNotExist:
-        return Response(
-            {"err": "Order not found."},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    if request.method == "GET":
-        serializer = OrderSerializer(order)
-        return Response(serializer.data)
-
-    if request.method == "PUT":
-        serializer = OrderSerializer(
-            order,
-            data=request.data,
-            partial=True
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    if request.method == "DELETE":
-        if not request.user.is_authenticated:
-            return Response(
-                {"err": "Authentication required."},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        order.delete()
-
-        return Response(
-            {"message": "Order deleted successfully."},
-            status=status.HTTP_200_OK
-        )
+        Thank you for shopping with Ndesigns.
+        """,
+        from_email= settings.EMAIL_HOST_USER,
+        recipient_list=[order.customer_email]
+    )
+    except Exception as e:
+        context['result'] = f'Error sending email: {e}'
+    return Response(OrderSerializer(order).data,status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
