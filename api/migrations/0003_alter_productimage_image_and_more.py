@@ -15,8 +15,4 @@ class Migration(migrations.Migration):
             name='image',
             field=models.ImageField(max_length=255, upload_to='products/'),
         ),
-        migrations.AddConstraint(
-            model_name='productvariant',
-            constraint=models.UniqueConstraint(fields=('product', 'size'), name='unique_product_size'),
-        ),
     ]

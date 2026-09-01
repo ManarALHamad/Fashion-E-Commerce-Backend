@@ -145,7 +145,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "delivery_address",
             "payment_method",
             "payment_status",
-            "is_confirmed",
+            "order_status",
             "total_price",
             "items",
             "createdAt",
