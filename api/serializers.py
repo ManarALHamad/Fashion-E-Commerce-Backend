@@ -91,6 +91,10 @@ class ProductSerializer(serializers.ModelSerializer):
         source="created_at",
         read_only=True
     )
+    category = serializers.CharField(
+        source="sub_category.category.name",
+        read_only=True
+    )
 
     class Meta:
         model = Product
@@ -99,6 +103,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "sub_category",
+            "category",
             "in_stock",
             "images",
             "variants",
@@ -145,7 +150,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "delivery_address",
             "payment_method",
             "payment_status",
-            "is_confirmed",
+            "order_status",
             "total_price",
             "items",
             "createdAt",
