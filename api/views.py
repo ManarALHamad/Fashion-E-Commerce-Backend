@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import ( Category, SubCategory, Product, ProductImage)
 from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer)
@@ -302,13 +304,29 @@ def order_create(request):
             variant_id=item["variant"],
             quantity=item["quantity"],
             unit_price=item["unit_price"]
-
         )
+        context = {}
+    try:
+        send_mail(
+        subject="Order Confirmation", 
+        message=
+        f"""
+        Dear {order.customer_name},
+        Thank you for your order!
+        Order information
+        Order number: {order.id}
+        Total amount: {order.total_price} BHD
+        Payment method: {order.get_payment_method_display()}
+        Shipping address: {order.delivery_address}
 
-
-        
+        Thank you for shopping with Ndesigns.
+        """,
+        from_email= settings.EMAIL_HOST_USER,
+        recipient_list=[order.customer_email]
+    )
+    except Exception as e:
+        context['result'] = f'Error sending email: {e}'
     return Response(OrderSerializer(order).data,status=status.HTTP_201_CREATED)
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
