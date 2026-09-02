@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.core.mail import send_mail
 from django.conf import settings
 
+
 from .models import ( Category, SubCategory, Product, ProductImage)
 from .serializers import ( UserSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, ProductImageSerializer)
 from .models import ProductImage
@@ -306,8 +307,6 @@ def order_create(request):
             quantity=item["quantity"],
             unit_price=item["unit_price"]
         )
-        context = {}
-    try:
         send_mail(
         subject="Order Confirmation", 
         message=
@@ -325,10 +324,7 @@ def order_create(request):
         from_email= settings.EMAIL_HOST_USER,
         recipient_list=[order.customer_email]
     )
-    except Exception as e:
-        context['result'] = f'Error sending email: {e}'
     return Response(OrderSerializer(order).data,status=status.HTTP_201_CREATED)
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

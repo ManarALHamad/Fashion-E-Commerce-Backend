@@ -44,10 +44,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-print("EMAIL:", EMAIL_HOST_USER)
-print("PASSWORD LOADED:", bool(EMAIL_HOST_PASSWORD))
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
