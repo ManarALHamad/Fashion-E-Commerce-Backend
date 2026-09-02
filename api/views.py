@@ -312,14 +312,25 @@ def order_create(request):
         message=
         f"""
         Dear {order.customer_name},
-        Thank you for your order!
-        Order information
-        Order number: {order.id}
-        Total amount: {order.total_price} BHD
-        Payment method: {order.get_payment_method_display()}
-        Shipping address: {order.delivery_address}
 
-        Thank you for shopping with Ndesigns.
+        Thank you for shopping with NDESIGNS! 💚
+
+        We’re happy to confirm that we’ve received your order and will begin preparing it for you.
+
+        Order Details
+
+        Order Number: #{order.id}
+        Total Amount: {order.total_price} BHD
+        Payment Method: {order.get_payment_method_display()}
+        Delivery Address: {order.delivery_address}
+
+        We’ll make sure your order is prepared with care.
+
+        Thank you for choosing NDESIGNS. We truly appreciate your support and hope you love your new pieces! 💚
+
+        Warm regards,
+        NDESIGNS
+
         """,
         from_email= settings.EMAIL_HOST_USER,
         recipient_list=[order.customer_email]
